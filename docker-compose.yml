@@ -1,0 +1,68 @@
+version: "3"
+services:
+  orders-api:
+    build:
+      context: "./order-api"
+      dockerfile: "./Dockerfile"
+    depends_on:
+      - orders-api-db
+      - redis
+      - elastic
+    environment:
+      - DB_URI=mysql://root:password@orders-service-db/db?charset=UTF8
+    ports:
+      - "7100:7100"
+    volumes:
+      - ./order-api:/opt/app
+
+  orders-api-db:
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=orderapi
+    image: mysql:latest
+    ports:
+      - 0.0.0.0:7200:3306
+
+  users-api:
+    build:
+      context: "./user-api"
+      dockerfile: "./Dockerfile"
+    depends_on:
+      - users-api-db
+      - redis
+    environment:
+      - DB_URI=mysql://root:password@users-service-db/db?charset=UTF8
+    ports:
+      - "7101:7101"
+    volumes:
+      - ./user-api:/opt/app
+
+  users-api-db:
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=userapi
+    image: mysql:latest
+    ports:
+      - 0.0.0.0:7201:3306
+      -
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
+    container_name: es01
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - data01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+
+  redis:
+    image: "redis:alpine"

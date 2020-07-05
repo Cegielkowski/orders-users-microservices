@@ -1,0 +1,13 @@
+{
+  "databases": {
+    "mysql": {
+      "host": "localhost",
+      "user": "root",
+      "port": 3306,
+      "password": "",
+      "database": "userapitest"
+    },
+    "use": "mysql"
+  },
+  "verbose": false
+}
